@@ -49,3 +49,23 @@ OS对于I/O来说，只有阻塞与非阻塞
 
 > js是单线程的，node本身却是多线程的（使用到线程池）
 
+
+
+## 非I/O的异步api
+
+> setTimeout() 、setInterval()、setImmediate()、process.nextTick()
+
+![img](https://raw.githubusercontent.com/caifeng123/pictures/master/16f3b451c5239b28%7Etplv-t2oaga2asx-watermark.awebp)
+
+- setTimeout() 、setInterval()
+  - 属于定时器观察者
+  - 原理类似异步I/O模型（只需前三步，不需要I/O线程池）,创建定时器插入到定时器观察者内部的红黑树中。每次tick执行，都会从红黑树中迭代取出定时器，观察是否超时，从而执行回调函数。
+  - 缺点：不精确。假设一个定时器任务设定10ms后执行，在9ms时有一个任务占用5ms的cpu时间片，当下一次循环到定时器任务时，已经超时4ms了。
+
+- process.nextTick(fn)
+  - 在每个eventloop之间都会去检测执行。
+  - 相比于setTimeout(fn, 0) 更为轻量。process.nextTick每次调用会将回调函数放入队列中，在下一次tick时，按顺序执行时间复杂度为O(1)。相比setTimeout 先将定时器插入观察者红黑树，再每次tick从红黑树中校验，复杂度为O(lg(n))
+- setImmediate()
+  - 属于check观察者
+  - 和process.nextTick(fn)类似，都是立即执行的异步函数。
+  - 将任务放在链表中，每次tick取出其一执行，为保证cpu时间片
